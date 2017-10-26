@@ -118,6 +118,35 @@ public class AdditionalAvroDataTest
         Assert.assertEquals(SpecificData.get().toString(avroMessage), SpecificData.get().toString(output));
 
     }
+
+    @Test
+    public void testEnumUnion() throws Exception {
+        GenericData genericData = GenericData.get();
+        AvroDataConfig avroDataConfig = new AvroDataConfig.Builder()
+            .with(AvroDataConfig.ENHANCED_AVRO_SCHEMA_SUPPORT_CONFIG, true)
+            .build();
+
+        AvroData avroData = new AvroData(avroDataConfig);
+
+        TestModel testModel = TestModel.newBuilder()
+            .setUserType(UserType.ANONYMOUS)
+            .build();
+
+        SchemaAndValue schemaAndValue = avroData.toConnectData(TestModel.SCHEMA$, testModel);
+        org.apache.kafka.connect.data.Schema schema = schemaAndValue.schema();
+        Object schemaValue = schemaAndValue.value();
+
+        Object value = avroData.fromConnectData(schema, schemaValue);
+
+        Schema userTypeSchema = TestModel.SCHEMA$.getField("userType").schema();
+
+        Object userTypeValue = ((GenericData.Record) value).get("userType");
+
+
+        int unionIndex = genericData.resolveUnion(userTypeSchema, userTypeValue);
+        Assert.assertEquals(1, unionIndex);
+    }
+
     @Test
     /**
      * @see https://github.com/confluentinc/schema-registry/issues/405

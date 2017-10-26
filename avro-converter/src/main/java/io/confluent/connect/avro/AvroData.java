@@ -19,7 +19,12 @@ package io.confluent.connect.avro;
 import io.confluent.kafka.serializers.AbstractKafkaAvroDeserializer;
 import io.confluent.kafka.serializers.NonRecordContainer;
 
-import org.apache.avro.generic.*;
+import org.apache.avro.generic.GenericEnumSymbol;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericFixed;
+import org.apache.avro.generic.GenericRecord;
+import org.apache.avro.generic.GenericRecordBuilder;
+import org.apache.avro.generic.IndexedRecord;
 import org.apache.kafka.common.cache.Cache;
 import org.apache.kafka.common.cache.LRUCache;
 import org.apache.kafka.common.cache.SynchronizedCache;
@@ -425,7 +430,7 @@ public class AvroData {
               requireContainer);
         case STRING:
           if (enhancedSchemaSupport && schema != null && schema.parameters() != null
-              && schema.parameters().containsKey(AVRO_TYPE_ENUM)) {
+              && schema.parameters().containsKey(AVRO_TYPE_ENUM) && avroSchema.getType() == org.apache.avro.Schema.Type.UNION) {
             String enumSchemaName = schema.parameters().get(AVRO_TYPE_ENUM);
             int enumIndex = avroSchema.getIndexNamed(enumSchemaName);
             org.apache.avro.Schema enumSchema = avroSchema.getTypes().get(enumIndex);
